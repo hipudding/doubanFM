@@ -71,11 +71,11 @@ class LoginClass(QtGui.QDialog):
 
         layout.addLayout(contentLayout)
         layout.addLayout(submitLayout)
+        #self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
+        self.setFixedSize(249,139)
         self.setLayout(layout)
         self.getCaptcha()
 
-    def closeEvent(self,event):
-        self.reject()
     def getCaptchaInThread(self):
         thread.start_new_thread(self.getCaptcha,())
 
@@ -160,7 +160,9 @@ class MainWindow(QtGui.QWidget):
         timer = QtCore.QTimer(self)
         timer.timeout.connect(self.test)
         timer.start(1000)
+        self.setWindowFlags(self.windowFlags()&~QtCore.Qt.WindowMaximizeButtonHint&~QtCore.Qt.WindowMinimizeButtonHint)
         self.setLayout(mainLayout)
+        self.setFixedSize(263,183)
         self.play()
 
     def showMainWindow(self,mode):
@@ -169,7 +171,7 @@ class MainWindow(QtGui.QWidget):
                 self.setVisible(False)
             else:
                 self.setVisible(True)
-                self.move((QtGui.QApplication.desktop().width()-main.width())/2,(QtGui.QApplication.desktop().height()-main.height())/2)
+                self.move((QtGui.QApplication.desktop().width()-self.width())/2,(QtGui.QApplication.desktop().height()-self.height())/2)
 
     def closeEvent(self,event):
         self.setVisible(False)
@@ -247,7 +249,7 @@ class MainWindow(QtGui.QWidget):
     def test(self):
         self.player.queryPosition()
         self.processBar.setValue(self.player.getPosition()/self.length*100)
-        if self.player.getPosition() >= self.length:
+        if self.player.getPosition() > self.length - 1:
             self.player.onStop()
             nextUrl = "http://douban.fm/j/mine/playlist?type=p&sid=%s&pt=%s&channel=0&pb=64&from=mainsite&r=%s" % (str(self.sid), str(self.length) , self.getRandom())
             self.getMusic(nextUrl)
@@ -289,23 +291,23 @@ class HttpRequest():
         urllib2.install_opener(opener)
         req = urllib2.Request(url,urllib.urlencode(body))
         res = urllib2.urlopen(req)
-        return res.read()
+        return res
 
     def getRequest(self,url):
         opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cookie))
         urllib2.install_opener(opener)
         res = urllib2.urlopen(url)
-        return res.read()
+        return res
 
     def getCaptchaRequest(self):
         url = 'http://douban.fm/j/new_captcha'
-        content = self.getRequest(url)
+        content = self.getRequest(url).read()
         captcha_id =  str(content).replace('"','')
         url = 'http://douban.fm/misc/captcha?size=m&id=%s' % captcha_id
         return self.getImageRequest(url),captcha_id
 
     def getImageRequest(self,url):
-        content = self.getRequest(url)
+        content = self.getRequest(url).read()
         file = open('./temp.jpg','w')
         file.write(content)
         file.close()
@@ -313,7 +315,7 @@ class HttpRequest():
         return image
 
     def analisysMusic(self,url):
-        content = self.getRequest(url)
+        content = self.getRequest(url).read()
         jsonmap = json.loads(content)
         select = random.randint(0,4)
         title = jsonmap['song'][select]['title']
@@ -326,12 +328,9 @@ class HttpRequest():
         return title,artist,url,picture,sid,length,like
 
 
-
 logintest = LoginClass()
 if logintest.exec_() == 1:
     main = MainWindow()
     main.show()
     main.move((QtGui.QApplication.desktop().width()-main.width())/2,(QtGui.QApplication.desktop().height()-main.height())/2)
-else:
-    QtGui.qApp.quit()
-sys.exit(app.exec_())
+    sys.exit(app.exec_())

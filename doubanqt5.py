@@ -332,6 +332,4 @@ if logintest.exec_() == 1:
     main = MainWindow()
     main.show()
     main.move((QtWidgets.QApplication.desktop().width()-main.width())/2,(QtWidgets.QApplication.desktop().height()-main.height())/2)
-else:
-    QtWidgets.qApp.quit()
-sys.exit(app.exec_())
+    sys.exit(app.exec_())
