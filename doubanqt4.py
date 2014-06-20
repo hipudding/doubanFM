@@ -291,23 +291,23 @@ class HttpRequest():
         urllib2.install_opener(opener)
         req = urllib2.Request(url,urllib.urlencode(body))
         res = urllib2.urlopen(req)
-        return res
+        return res.read()
 
     def getRequest(self,url):
         opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cookie))
         urllib2.install_opener(opener)
         res = urllib2.urlopen(url)
-        return res
+        return res.read()
 
     def getCaptchaRequest(self):
         url = 'http://douban.fm/j/new_captcha'
-        content = self.getRequest(url).read()
+        content = self.getRequest(url)
         captcha_id =  str(content).replace('"','')
         url = 'http://douban.fm/misc/captcha?size=m&id=%s' % captcha_id
         return self.getImageRequest(url),captcha_id
 
     def getImageRequest(self,url):
-        content = self.getRequest(url).read()
+        content = self.getRequest(url)
         file = open('./temp.jpg','w')
         file.write(content)
         file.close()
@@ -315,7 +315,7 @@ class HttpRequest():
         return image
 
     def analisysMusic(self,url):
-        content = self.getRequest(url).read()
+        content = self.getRequest(url)
         jsonmap = json.loads(content)
         select = random.randint(0,4)
         title = jsonmap['song'][select]['title']
